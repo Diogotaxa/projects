@@ -1,5 +1,5 @@
 """
-Parser module for extracting data from ESMA XML.
+Parser module for extracting data from ESMA XML
 """
 
 import logging
@@ -9,23 +9,23 @@ import xml.etree.ElementTree as ET
 
 
 class XMLParser:
-    """Handles parsing of ESMA XML data."""
+    """Handles parsing of ESMA XML data"""
 
     def __init__(self) -> None:
         self.logger = logging.getLogger(__name__)
 
     def extract_dltins_link(self, xml_content: str) -> str:
         """
-        Extract the second download link where file_type is 'DLTINS'.
+        Extract the second download link where file_type is 'DLTINS'
 
         Args:
-            xml_content (str): XML content as string.
+            xml_content (str): XML content as string
 
         Returns:
-            str: Download URL for the second DLTINS entry.
+            str: Download URL for the second DLTINS entry
 
         Raises:
-            ValueError: If less than two DLTINS entries are found.
+            ValueError: If less than two DLTINS entries are found
         """
         self.logger.info("Parsing XML to find DLTINS links")
 
@@ -61,16 +61,16 @@ class XMLParser:
     
     def extract_xml_from_zip(self, zip_bytes: bytes) -> str:
         """
-        Extract the XML file content from a ZIP archive.
+        Extract the XML file content from a ZIP archive
 
         Args:
-            zip_bytes (bytes): ZIP file content as bytes.
+            zip_bytes (bytes): ZIP file content as bytes
 
         Returns:
-            str: Extracted XML content as string.
+            str: Extracted XML content as string
 
         Raises:
-            ValueError: If no XML file is found in the ZIP.
+            ValueError: If no XML file is found in the ZIP
         """
         self.logger.info("Extracting XML from ZIP")
 
@@ -97,49 +97,47 @@ class XMLParser:
 
     def parse_instruments(self, xml_content: str) -> list[dict]:
         """
-        Parse the inner XML and extract required fields.
+        Parse the inner XML and extract required fields
 
         Args:
-            xml_content (str): XML content as string.
+            xml_content (str): XML content as string
 
         Returns:
-            list[dict]: List of instrument records.
+            list[dict]: List of instrument records
         """
         self.logger.info("Parsing instrument data from XML")
 
         root = ET.fromstring(xml_content)
-
         records = []
 
         for instr in root.findall(".//{*}FinInstrm"):
 
-            gnl = (
+            record = (
             instr.find("{*}NewRcrd") or
             instr.find("{*}ModfdRcrd") or
             instr.find("{*}TermntdRcrd")
             )
 
-            if gnl is None:
+            if record is None:
                 continue
 
-            record_element = gnl.find("{*}FinInstrmGnlAttrbts")
+            attr = record.find("{*}FinInstrmGnlAttrbts")
 
-            if record_element is None:
+            if attr is None:
                 continue
 
             record = {
-                "FinInstrmGnlAttrbts.Id": self._get_text(record_element, "Id"),
-                "FinInstrmGnlAttrbts.FullNm": self._get_text(record_element, "FullNm"),
-                "FinInstrmGnlAttrbts.ClssfctnTp": self._get_text(record_element, "ClssfctnTp"),
-                "FinInstrmGnlAttrbts.CmmdtyDerivInd": self._get_text(record_element, "CmmdtyDerivInd"),
-                "FinInstrmGnlAttrbts.NtnlCcy": self._get_text(record_element, "NtnlCcy"),
-                "Issr": self._get_text(gnl, "Issr"),
+                "FinInstrmGnlAttrbts.Id": self._get_text(attr, "Id"),
+                "FinInstrmGnlAttrbts.FullNm": self._get_text(attr, "FullNm"),
+                "FinInstrmGnlAttrbts.ClssfctnTp": self._get_text(attr, "ClssfctnTp"),
+                "FinInstrmGnlAttrbts.CmmdtyDerivInd": self._get_text(attr, "CmmdtyDerivInd"),
+                "FinInstrmGnlAttrbts.NtnlCcy": self._get_text(attr, "NtnlCcy"),
+                "Issr": self._get_text(record, "Issr"),
             }
 
             records.append(record)
 
-        self.logger.info("Parsed %s records", len(records))
-
+        self.logger.info(f"Parsed {len(records)} records")
         return records
 
     def _get_text(self, parent, tag: str) -> str:
