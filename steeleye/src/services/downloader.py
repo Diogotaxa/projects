@@ -44,3 +44,29 @@ class Downloader:
         except requests.RequestException as e:
             self.logger.error(f"Failed to download XML: {e}")
             raise
+    
+    def fetch_binary(self, url: str) -> bytes:
+        """
+        Download binary content (e.g., ZIP file) from a URL.
+
+        Args:
+            url (str): The URL to fetch.
+
+        Returns:
+            bytes: Raw response content.
+
+        Raises:
+            requests.RequestException: If request fails.
+        """
+        self.logger.info(f"Downloading binary file from {url}")
+
+        try:
+            response = requests.get(url, timeout=self.timeout)
+            response.raise_for_status()
+
+            self.logger.info("Binary download successful")
+            return response.content  # 👈 important: bytes
+
+        except requests.RequestException as e:
+            self.logger.error(f"Failed to download binary file: {e}")
+            raise
